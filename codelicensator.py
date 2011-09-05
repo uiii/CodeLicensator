@@ -75,6 +75,7 @@ def assing_vars(licensetext, var_assignments):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description = "Add license to the files")
+    parser.add_argument("workingdir", metavar="working-dir", help="directory where to seek recursively for files")
     parser.add_argument("license", help="name of the license file without extension")
     parser.add_argument("filter", metavar="file-filter", help="wildcard of files to be licensed", default="*", nargs="?")
     parser.add_argument(
@@ -88,6 +89,10 @@ if __name__ == "__main__":
             default=""
     )
     args = parser.parse_args()
+
+    if not os.path.isdir(args.workingdir):
+        print(args.workingdir + " is not directory")
+        sys.exit(1)
 
     license_dir = os.path.expanduser(args.license_dir)
 
@@ -116,7 +121,7 @@ if __name__ == "__main__":
     filter = wildcardsToRegex(args.filter);
     print(filter)
 
-    for dir, _, files in os.walk("."):
+    for dir, _, files in os.walk(args.workingdir):
         for file in files:
             filepath = os.path.join(dir, file)
 
