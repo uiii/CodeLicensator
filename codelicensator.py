@@ -11,7 +11,6 @@ import re
 default_license_dir = os.path.expanduser("~/.codelicensator")
 
 def checkVarAssignments(var_assignments):
-    print("'" + var_assignments + "'")
     if not re.match("^(|([A-Z_]+=[^,]+,)*([A-Z_]+=[^,]+))$", var_assignments):
         print("bad var assignments format")
         sys.exit(1)
@@ -62,7 +61,6 @@ def assing_vars(licensetext, var_assignments):
     checkVarAssignments(var_assignments)
     varlist = extract_vars(licensetext)
     vardict = make_dict(var_assignments)
-    print(vardict)
 
     for var in varlist:
         if var in vardict:
@@ -116,17 +114,14 @@ if __name__ == "__main__":
     licensetext = licensefile.read();
 
     licensetext = assing_vars(licensetext, args.vars)
-    print(licensetext)
 
     filter = wildcardsToRegex(args.filter);
-    print(filter)
 
     for dir, _, files in os.walk(args.workingdir):
         for file in files:
             filepath = os.path.join(dir, file)
 
             if re.match(filter, filepath):
-                print(filepath)
                 file = open(filepath, "r")
                 filecontent = file.read()
                 file.close()
@@ -134,22 +129,12 @@ if __name__ == "__main__":
                 match = re.match("^(.*)(\/\*((?!\*/).)*copyright((?!\*/).)*\*\/)\\n(.*)$", filecontent, re.DOTALL | re.IGNORECASE)
                 if match:
                     if args.replace:
+                        print("replacing license:", filepath)
                         file = open(filepath, "w")
                         file.write(match.group(1) + licensetext + match.group(5))
+                    else:
+                        print("already licensed:", filepath)
                 else:
+                    print("adding license:", filepath)
                     file = open(filepath, "w")
                     file.write(licensetext + "\n" + filecontent)
-                    
-                if match != None:
-                    print("-->" + match.group(1) + "<--")
-                    print("-->" + match.group(2) + "<--")
-                    print("-->" + match.group(5) + "<--")
-
-        #print(dir, files, "\n");
-
-    #if len(sys.argv) == 1:
-    #    print(
-    #            "usage: codelicensator <license> <directory [file-filter] -r|file> [-l <license-dir>]\n\n"
-    #            "license - name of the license file without extension"
-    #    );
-    #    sys.exit(1)
