@@ -8,7 +8,7 @@ import fnmatch
 import string
 import re
 
-default_license_dir = os.path.expanduser("~/.codelicensator")
+license_dir = os.path.dirname(os.path.realpath(__file__)) + "/licenses"
 
 def checkVarAssignments(var_assignments):
     if not re.match("^(|([A-Z_]+=[^,]+,)*([A-Z_]+=[^,]+))$", var_assignments):
@@ -72,14 +72,18 @@ def assing_vars(licensetext, var_assignments):
     return licensetext
 
 if __name__ == "__main__":
+    try:
+        licenses = os.listdir(license_dir)
+    except OSError as e:
+        print(e)
+        sys.exit(1)
+
     parser = argparse.ArgumentParser(description = "Add license to the files")
-    parser.add_argument("workingdir", metavar="working-dir", help="directory where to seek recursively for files")
-    parser.add_argument("license", help="name of the license file without extension")
-    parser.add_argument("filter", metavar="file-filter", help="wildcard of files to be licensed", default="*", nargs="?")
+    parser.add_argument("workingdir", metavar="<dir>", help="directory where to seek recursively for files")
+    parser.add_argument("license", metavar="<license>", help="path to the license file or just name of the available license (" + ", ".join(licenses) + ")")
     parser.add_argument(
-            "-l", "--license-dir", metavar="DIR",
-            help="direcotry with licenses (default is " + default_license_dir + ")",
-            required=False, default=default_license_dir
+            "-f", "--filter", metavar="FILTER",
+            help="wildcard to filter files to be licensed (default \"*\")", required=False, default="*"
     )
     parser.add_argument("-r", "--replace", help="replace license in source file if another exists", action="store_true")
     parser.add_argument(
@@ -92,25 +96,17 @@ if __name__ == "__main__":
         print(args.workingdir + " is not directory")
         sys.exit(1)
 
-    license_dir = os.path.expanduser(args.license_dir)
+    if os.path.exists(args.license):
+        licensefilepath = args.license
+    else:
+        if not args.license in licenses:
+            print("Error: there is no license '" + args.license + "'")
+            print("Available licenses:", ", ".join(licenses));
+            sys.exit(1)
 
-    if license_dir == default_license_dir:
-        if not os.path.exists(license_dir):
-            os.mkdir(license_dir)
-            print("creating default '" + license_dir + "' directory")
-
-    try:
-        licenses = os.listdir(license_dir)
-    except OSError as e:
-        print(e)
-        sys.exit(1)
-
-    if not args.license in licenses:
-        print("Error: there is no license '" + args.license + "'")
-        print("Available licenses:", " ".join(licenses));
-        sys.exit(1)
+        licensefilepath = os.path.join(license_dir, args.license)
     
-    licensefile = open(os.path.join(license_dir, args.license), "r")
+    licensefile = open(licensefilepath, "r")
     licensetext = licensefile.read();
 
     licensetext = assing_vars(licensetext, args.vars)
