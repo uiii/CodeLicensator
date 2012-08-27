@@ -101,13 +101,13 @@ if __name__ == "__main__":
     else:
         if not args.license in licenses:
             print("Error: there is no license '" + args.license + "'")
-            print("Available licenses:", ", ".join(licenses));
+            print("Available licenses:", ", ".join(licenses))
             sys.exit(1)
 
         licensefilepath = os.path.join(license_dir, args.license)
     
     licensefile = open(licensefilepath, "r")
-    licensetext = licensefile.read();
+    licensetext = licensefile.read()
 
     licensetext = assing_vars(licensetext, args.vars)
 
